@@ -1,0 +1,52 @@
+
+# commands.dat:
+# Before running this, # Put 4oji_clean.pdb in last.1.pdb
+
+firstStage 2
+lastStage 2
+
+# The reporting interval is set empirically, it has no particular physical meaning in this case:
+readAtStage 2
+reportingInterval .5
+readBlockEnd
+
+readAtStage 3
+reportingInterval .5
+readBlockEnd
+#readAtStage 4
+#reportingInterval 5
+#readBlockEnd
+numReportingIntervals 80
+
+# 4oji -- "target" fragment
+#RNA A 1 CCGCCUAACACUGCCAAUGCCGGUCCCAAGCCCGGAUAAAAGUGGAGGGGGCGG
+
+#use the load sequences from pub option as more efficient
+loadSequencesFromPdb
+
+# Twister wildtype -- "threaded" fragment
+readAtStage 2
+RNA B 7 AACACUGCCAAUGCCGGUCCCAAGCCCGGAUAAAAGUGGAGGGGGCGG
+readBlockEnd
+
+mobilizer Rigid A
+
+# Old way to prevent steric clashes, as described in Flores & Altman, RNA 2010:
+#contact AllHeavyAtomSterics C 146 164
+
+# More modern way, using "Physics where you want it" applied to target only:
+#setDefaultMDParameters
+#includeResidues B FirstResidue LastResidue
+
+# Note that for large molecules, the force field can get expensive. In such cases, try threading it in parts.
+
+#Alignment forces. More modern way, which pulls together like-named atoms in corresponding residues:
+
+# First, specify that the alignment is explicit, rather than using a SeqAn gapped alignment. Internally, this simply applies a high penalty to gaps:
+alignmentForces noGap
+
+# Next, specify the force constant for the alignment springs. There is not much physical meaning to this choice of force constant, it is just empirically sufficient to pull the chains together nicely:
+alignmentForces forceConstant 300.0
+
+# Finally, specify corresponding residue stretches to be pulled together on template and target:
+alignmentForces B 7 54 A 7 54
